@@ -1,48 +1,43 @@
-from vpython import *
+import vpython as vp
+import pywebio.input as pwinput
+import pywebio.output as pwoutput
 
-class Player:
-    def __init__(self, pos, color):
-        self.segments = []
-        self.head = sphere(pos=pos, radius=0.5, color=color)
-        self.segments.append(self.head)
-        self.direction = vector(1, 0, 0)
+import constants
+import utils
+from networking import client
 
-        # Bind the keydown event to the scene object
-        scene.bind('keydown', self.handle_keydown)
+class Player():
+    def __init__(self, scene: vp.canvas, name: str, pos: vp.vector = None):
+        self.canvas = scene
+        self.name = name
+        self.radius = constants.Player.STARTING_RADIUS
+        self.color = constants.Player.DEFAULT_COLOR
+        self.direction = constants.Player.STARTING_DIRECTION
+        self.velocity = constants.Player.STARTING_VELOCITY
 
-    def handle_keydown(self, evt):
-        """Handle the keydown event."""
-        if evt.key == 'up':
-            self.set_direction(vector(0, 1, 0))
-        elif evt.key == 'down':
-            self.set_direction(vector(0, -1, 0))
-        elif evt.key == 'left':
-            self.set_direction(vector(-1, 0, 0))
-        elif evt.key == 'right':
-            self.set_direction(vector(1, 0, 0))
+        self.client = None
+        
+        self.setup_client()
 
-    def move(self):
-        """Move the player in the current direction."""
-        head_pos = self.head.pos + self.direction
-        new_head = sphere(pos=head_pos, radius=0.5, color=self.head.color)
-        self.segments.insert(0, new_head)
-        self.head = new_head
-        self.segments[-1].visible = False
-        self.segments.pop()
+        if pos is None:
+            self.position = vp.vector.random()
 
-    def set_direction(self, direction):
-        """Set the current direction of the player."""
-        self.direction = direction
+        self.curve = vp.curve(pos=[self.position], radius=self.radius, color=self.color)
+        self.curve.append(pos=[self.position + vp.vector(0, 0, 1)], radius=self.radius, color=self.color)
 
-    def grow(self):
-        """Add a new segment to the player."""
-        pos = self.segments[-1].pos
-        new_segment = sphere(pos=pos, radius=0.5, color=self.head.color)
-        self.segments.append(new_segment)
+    def setup_client(self, host: str = None, port: int = None):
+        if (host is None) or (port is None):
+            host = pwinput.input("Enter the host: ", type=pwinput.TEXT)
+            port = pwinput.input("Enter the port: ", type=pwinput.NUMBER, validate=utils.check_port)
 
-    def die(self):
-        """Handle the player's death."""
-        for segment in self.segments:
-            segment.visible = False
-        self.segments = []
-        self.head = None
+        with pwoutput.toast("Connecting to server..."):
+            try:
+                self.client = client.TCPClient(host, port)
+                self.client.connect()
+            except:
+                pwoutput.error("Failed to connect to server")
+                return
+            
+    def update(self):
+        self.position += self.direction * self.velocity
+        self.curve.append(pos=[self.position], radius=self.radius, color=self.color)

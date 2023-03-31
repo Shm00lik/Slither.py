@@ -1,55 +1,33 @@
-from vpython import *
-import random
+import pywebio.input as pwinput
+import vpython as vp
+
+import constants
 from player import Player
-import utils
 
 
-class GameManager:
+class Game:
     def __init__(self):
+        self.me = None
         self.players = []
-        self.food = []
-        self.score = 0
-        self.create_food()
+        self.scene = vp.canvas(
+            width=constants.Game.CANVAS_WIDTH, 
+            height=constants.Game.CANVAS_HEIGHT, 
+            background=constants.Game.CANVAS_BACKGROUND_COLOR
+        )
 
-    def create_food(self):
-        """Create a new piece of food at a random position."""
-        pos = vector(random.randint(-5, 5), random.randint(-5, 5), 0)
-        food = sphere(pos=pos, radius=0.5, color=color.green)
-        self.food.append(food)
+        self.setup()
 
-    def add_player(self, player):
-        """Add a player to the game."""
-        self.players.append(player)
+    def setup(self):
+        self.scene.userpan = False
+        self.scene.userspin = False
+        self.scene.userzoom = False
+        self.scene.autoscale = False
+        self.me = Player(self.scene, pwinput.input("Enter your name: ", type="text"))
 
-    def update(self):
-        """Update the game state."""
-        for player in self.players:
-            # Check for collision with food
-            for food in self.food:
-                if utils.distance(player.head.pos, food.pos) < player.head.radius:
-                    self.food.remove(food)
-                    food.visible = False
-                    self.score += 1
-                    player.grow()
-
-            player.move()
-
-            # Check for collision with other players
-            for other in self.players:
-                if player != other and utils.distance(player.head.pos, other.head.pos) < player.head.radius + other.head.radius:
-                    player.die()
-
-        # Create new food if there are less than 10 pieces remaining
-        if len(self.food) < 10:
-            self.create_food()
+        vp.sphere(pos=vp.vector(0, 0, 0), color=vp.color.white)
+        vp.sphere(pos=vp.vector(1, 0, 0), color=vp.color.green)
+        vp.sphere(pos=vp.vector(0, 1, 0), color=vp.color.red)
+        vp.sphere(pos=vp.vector(0, 0, 1), color=vp.color.blue)
 
 
-gm = GameManager()
-gm.add_player(Player(vector.random(), color.red))
-gm.add_player(Player(vector.random(), color.red))
-gm.add_player(Player(vector.random(), color.red))
-
-
-while True:
-    rate(8)
-    gm.update()
+Game()
