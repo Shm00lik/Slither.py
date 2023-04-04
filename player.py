@@ -30,9 +30,25 @@ class Player():
 
         self.last_mouse_pos = vp.vector(0, 0, 0)
         self.in_transition = False
+        self.num_of_segments = 30
 
         self.a = None
         self.b = None
+
+        self.is_sprinting = False
+
+        self.canvas.bind("keydown", self.on_key_down)
+
+    def on_key_down(self, event):
+        if event.key == "w":
+            self.num_of_segments += 10
+        elif event.key == "s":
+            self.num_of_segments -= 10
+        elif event.key == "e":
+            self.sprint()
+        elif event.key == "q":
+            self.stop_sprinting()
+
 
     def setup_client(self, host: str = None, port: int = None):
         if (host is None) or (port is None):
@@ -50,19 +66,21 @@ class Player():
     def update(self):
         self.update_direction()
 
+        if self.is_sprinting:
+            self.verify_sprint()
+
         self.position += self.direction * self.velocity
         self.position.z = 0
 
         self.segments.insert(0, self.position)
 
-        if len(self.segments) > 100:
-            self.segments.pop()
+        self.update_length()
 
         # print(self.segments)
 
         self.curve.clear()
         self.curve.append(pos=self.segments, radius=self.radius, color=self.color)
-        
+
         self.update_camera()
 
     def update_camera(self):
@@ -112,3 +130,26 @@ class Player():
         self.b = vp.arrow(pos=self.position, axis=last_direction, color=vp.color.blue)
 
         self.last_mouse_pos = mp
+
+    def update_length(self):
+        while len(self.segments) > self.num_of_segments:
+            self.segments.pop()
+
+    def is_able_to_sprint(self):
+        return self.num_of_segments >= constants.Player.MIN_NUM_OF_SEGMENTS
+    
+    def sprint(self):
+        if self.is_able_to_sprint() and not self.is_sprinting:
+            self.velocity = constants.Player.SPRINT_VELOCITY_FACTOR * self.velocity
+            self.is_sprinting = True
+
+    def verify_sprint(self):
+        if not self.is_able_to_sprint():
+            self.stop_sprinting()
+        else:
+            self.num_of_segments -= constants.Player.SPRINT_COST
+
+    def stop_sprinting(self):
+        if self.is_sprinting:
+            self.is_sprinting = False
+            self.velocity = self.velocity / constants.Player.SPRINT_VELOCITY_FACTOR

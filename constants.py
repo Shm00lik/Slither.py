@@ -8,6 +8,9 @@ class Player:
     STARTING_VELOCITY = 0.1 # Units per second
     MAX_ANGLE_CHANGE = math.radians(7) # Degrees to radians
     TURN_SPEED = 1 # Radians per second
+    MIN_NUM_OF_SEGMENTS = 30
+    SPRINT_COST = 1
+    SPRINT_VELOCITY_FACTOR = 2
 
 class Food:
     SMALL_RADIUS = 0.5
