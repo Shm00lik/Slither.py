@@ -74,7 +74,6 @@ class Player():
         if mp == self.last_mouse_pos and not self.in_transition:
             return
             
-        self.in_transition = True
 
         last_direction = self.direction
 
@@ -92,7 +91,7 @@ class Player():
         # Gradually adjust the direction of the snake towards the mouse direction
         if abs(angle_diff) < constants.Player.MAX_ANGLE_CHANGE:
             # If the angle difference is less than the turning threshold, no need to turn
-            self.direction = self.direction.norm()
+            self.direction = vp.vector(math.cos(mouse_angle), math.sin(mouse_angle), 0).norm()
             self.in_transition = False
         else:
             # Otherwise, turn by a small fraction of the turning angle
@@ -101,6 +100,8 @@ class Player():
             new_angle = current_angle + turn_amount
             target_direction = vp.vector(math.cos(new_angle), math.sin(new_angle), 0)
             self.direction = utils.lerp(self.direction, target_direction, constants.Player.TURN_SPEED)
+
+            self.in_transition = True
 
         # Update the direction arrows for debugging purposes
         if self.a is not None:
