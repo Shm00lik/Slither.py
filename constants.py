@@ -1,10 +1,13 @@
 import vpython as vp
+import math
 
 class Player:
     STARTING_RADIUS = 0.5
     DEFAULT_COLOR = vp.color.red
     STARTING_DIRECTION = vp.vector(1, 0, 0)
     STARTING_VELOCITY = 0.1 # Units per second
+    MAX_ANGLE_CHANGE = math.radians(7) # Degrees to radians
+    TURN_SPEED = 1 # Radians per second
 
 class Food:
     SMALL_RADIUS = 0.5

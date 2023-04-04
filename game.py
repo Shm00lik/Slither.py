@@ -30,7 +30,7 @@ class Game:
         vp.sphere(pos=vp.vector(0, 0, 1), color=vp.color.blue)
 
         while True:
-            vp.rate(60)
+            vp.rate(30)
             self.me.update()
 
 
